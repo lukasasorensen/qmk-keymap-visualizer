@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use dialoguer::Input;
 use directories::ProjectDirs;
+use regex::RegexBuilder;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
@@ -59,24 +60,29 @@ fn main() -> Result<()> {
         Commands::Setup => {
             println!("Welcome to QMK Keymap Visualizer Setup!");
             println!("Please enter the path to your keymap.c file:");
-            
-            let path: String = Input::new()
-                .with_prompt("Path")
-                .interact_text()?;
-            
+
+            let path: String = Input::new().with_prompt("Path").interact_text()?;
+
             let path = PathBuf::from(path);
             if !path.exists() {
                 return Err(anyhow::anyhow!("The specified path does not exist"));
             }
-            
+
             let config = Config { keymap_path: path };
             save_config(&config)?;
             println!("Configuration saved successfully!");
         }
         Commands::Show => {
+            let reg_exp = RegexBuilder::new(r"(?m)keymaps.*MATRIX.*\{(.*)\}")
+                .multi_line(true)
+                .dot_matches_new_line(true)
+                .build()
+                .unwrap();
+
             let config = load_config()?;
             let contents = fs::read_to_string(&config.keymap_path)?;
-            println!("{}", contents);
+            let caps = reg_exp.captures(&contents).unwrap();
+            println!("{}", caps.get(1).unwrap().as_str())
         }
     }
 

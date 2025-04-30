@@ -73,7 +73,7 @@ fn main() -> Result<()> {
             println!("Configuration saved successfully!");
         }
         Commands::Show => {
-            let reg_exp = RegexBuilder::new(r"(?m)keymaps.*MATRIX.*\{(.*)\}")
+            let reg_exp = RegexBuilder::new(r"keymaps.*MATRIX.*\{(.*)\}")
                 .multi_line(true)
                 .dot_matches_new_line(true)
                 .build()
@@ -82,7 +82,21 @@ fn main() -> Result<()> {
             let config = load_config()?;
             let contents = fs::read_to_string(&config.keymap_path)?;
             let caps = reg_exp.captures(&contents).unwrap();
-            println!("{}", caps.get(1).unwrap().as_str())
+            let inner = caps.get(1).unwrap().as_str();
+
+            // println!("{}", &inner);
+
+            let reg_exp_inner = RegexBuilder::new(r"\[\d+\](.*?)\s\),")
+                .multi_line(true)
+                .dot_matches_new_line(true)
+                .build()
+                .unwrap();
+
+            for part in reg_exp_inner.find_iter(&inner) {
+                println!("---- match start ----");
+                println!("{}", part.as_str());
+                println!("---- match end ----");
+            }
         }
     }
 

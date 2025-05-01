@@ -92,10 +92,19 @@ fn main() -> Result<()> {
                 .build()
                 .unwrap();
 
+            let reg_exp_layer = RegexBuilder::new(r"\w+?,")
+                .multi_line(true)
+                .build()
+                .unwrap();
+
             for part in reg_exp_inner.find_iter(&inner) {
-                println!("---- match start ----");
-                println!("{}", part.as_str());
-                println!("---- match end ----");
+                println!("---- LAYER start ----");
+                let inner_str = part.as_str();
+
+                for keycode in reg_exp_layer.find_iter(&inner_str) {
+                    println!("{}", keycode.as_str());
+                }
+                println!("---- LAYER end ----");
             }
         }
     }

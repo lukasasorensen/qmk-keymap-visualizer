@@ -118,45 +118,18 @@ fn main() -> Result<()> {
 
                 layer_index = layer_index + 1;
 
-                let mut keycode_index = 0;
+                let mut keycode_index = 1;
                 let mut row_index = 1;
                 for keycode in reg_exp_layer.find_iter(&inner_str) {
-                    if keycode_index == 0 {
-                        print_dashes();
-                    }
-                    keycode_index = keycode_index + 1;
-                    let is_end_row;
-                    let is_split_gap;
-
-                    let is_thumb_row = IS_SPLIT && row_index > NUMBER_OF_ROWS;
-
-                    if is_thumb_row {
-                        is_end_row = keycode_index % NUMBER_OF_THUMB_KEYS == 0;
-                        is_split_gap =
-                            !is_end_row && keycode_index % (NUMBER_OF_THUMB_KEYS / 2) == 0;
-                    } else {
-                        is_end_row = keycode_index % NUMBER_OF_COLUMNS == 0;
-                        is_split_gap =
-                            !is_end_row && IS_SPLIT && keycode_index % (NUMBER_OF_COLUMNS / 2) == 0;
-                    }
-
-                    let keycode_str = keycode.as_str();
-                    let mut human_readable =
-                        get_key_code_human_readable(&keycode_str, &keymap_dict);
-                    human_readable = create_key_gui(&human_readable);
-                    print!("{}", human_readable);
-
-                    if is_split_gap {
-                        print!("|      ")
-                    }
-
+                    let is_end_row = render_keycode(keycode.as_str(), keycode_index, row_index, &keymap_dict);
                     if is_end_row {
                         println!("|");
                         print_dashes();
                         row_index = row_index + 1;
                     }
+                    keycode_index = keycode_index + 1;
                 }
-                println!("");
+                println!("");   
                 print_dashes();
                 println!("---- LAYER end ----");
             }
@@ -164,6 +137,36 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn render_keycode(keycode: &str, keycode_index: i32, row_index: i32, keymap_dict: &KeymapDictionary) -> bool {
+    if keycode_index == 1 {
+        print_dashes();
+    }
+    let is_end_row;
+    let is_split_gap;
+
+    let is_thumb_row = IS_SPLIT && row_index > NUMBER_OF_ROWS;
+
+    if is_thumb_row {
+        is_end_row = keycode_index % NUMBER_OF_THUMB_KEYS == 0;
+        is_split_gap =
+            !is_end_row && keycode_index % (NUMBER_OF_THUMB_KEYS / 2) == 0;
+    } else {
+        is_end_row = keycode_index % NUMBER_OF_COLUMNS == 0;
+        is_split_gap =
+            !is_end_row && IS_SPLIT && keycode_index % (NUMBER_OF_COLUMNS / 2) == 0;
+    }
+
+    let mut human_readable =
+        get_key_code_human_readable(&keycode, &keymap_dict);
+    human_readable = create_key_gui(&human_readable);
+    print!("{}", human_readable);
+
+    if is_split_gap {
+        print!("|      ")
+    }
+    return is_end_row;
 }
 
 fn print_dashes() {

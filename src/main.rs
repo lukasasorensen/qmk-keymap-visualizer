@@ -100,8 +100,6 @@ fn main() -> Result<()> {
             let caps = reg_exp.captures(&contents).unwrap();
             let inner = caps.get(1).unwrap().as_str();
 
-            // println!("{}", &inner);
-
             let reg_exp_inner = RegexBuilder::new(r"\[\d+\](.*?)\s\),")
                 .multi_line(true)
                 .dot_matches_new_line(true)
@@ -123,12 +121,12 @@ fn main() -> Result<()> {
                 let mut keycode_index = 0;
                 let mut row_index = 1;
                 for keycode in reg_exp_layer.find_iter(&inner_str) {
-                    if (keycode_index == 0) {
+                    if keycode_index == 0 {
                         print_dashes();
                     }
                     keycode_index = keycode_index + 1;
-                    let mut is_end_row = false;
-                    let mut is_split_gap = false;
+                    let is_end_row;
+                    let is_split_gap;
 
                     let is_thumb_row = IS_SPLIT && row_index > NUMBER_OF_ROWS;
 

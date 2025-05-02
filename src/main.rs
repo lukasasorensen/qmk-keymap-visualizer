@@ -106,37 +106,39 @@ fn main() -> Result<()> {
                 .build()
                 .unwrap();
 
-            let reg_exp_layer = RegexBuilder::new(r"\w+?,")
-                .multi_line(true)
-                .build()
-                .unwrap();
-
             let mut layer_index = 0;
             for part in reg_exp_inner.find_iter(&inner) {
-                println!("---- LAYER {} start ----", layer_index.to_string());
-                let inner_str = part.as_str();
-
+                render_layer(part.as_str(), &keymap_dict, layer_index);
                 layer_index = layer_index + 1;
-
-                let mut keycode_index = 1;
-                let mut row_index = 1;
-                for keycode in reg_exp_layer.find_iter(&inner_str) {
-                    let is_end_row = render_keycode(keycode.as_str(), keycode_index, row_index, &keymap_dict);
-                    if is_end_row {
-                        println!("|");
-                        print_dashes();
-                        row_index = row_index + 1;
-                    }
-                    keycode_index = keycode_index + 1;
-                }
-                println!("");   
-                print_dashes();
-                println!("---- LAYER end ----");
             }
         }
     }
 
     Ok(())
+}
+
+fn render_layer(inner_str: &str, keymap_dict: &KeymapDictionary, layer_index: i32) {
+    let reg_exp_layer = RegexBuilder::new(r"\w+?,")
+                .multi_line(true)
+                .build()
+                .unwrap();
+
+    println!("---- LAYER {} start ----", layer_index.to_string());
+
+    let mut keycode_index = 1;
+    let mut row_index = 1;
+    for keycode in reg_exp_layer.find_iter(&inner_str) {
+        let is_end_row = render_keycode(keycode.as_str(), keycode_index, row_index, &keymap_dict);
+        if is_end_row {
+            println!("|");
+            print_dashes();
+            row_index = row_index + 1;
+        }
+        keycode_index = keycode_index + 1;
+    }
+    println!("");   
+    print_dashes();
+    println!("---- LAYER end ----");
 }
 
 fn render_keycode(keycode: &str, keycode_index: i32, row_index: i32, keymap_dict: &KeymapDictionary) -> bool {

@@ -4,13 +4,18 @@ use dialoguer::Input;
 use directories::ProjectDirs;
 use regex::RegexBuilder;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+
+static KEYCODES_JSON: &str = include_str!("../data/keycodes.json");
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
     keymap_path: PathBuf,
 }
+
+type KeymapDictionary = HashMap<String, String>;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -53,6 +58,11 @@ fn save_config(config: &Config) -> Result<()> {
     Ok(())
 }
 
+fn load_keymap_dictonary() -> Result<KeymapDictionary> {
+    let keymap_dictionary: KeymapDictionary = serde_json::from_str(KEYCODES_JSON)?;
+    Ok(keymap_dictionary)
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
@@ -80,6 +90,7 @@ fn main() -> Result<()> {
                 .unwrap();
 
             let config = load_config()?;
+            let keymap_dict = load_keymap_dictonary()?;
             let contents = fs::read_to_string(&config.keymap_path)?;
             let caps = reg_exp.captures(&contents).unwrap();
             let inner = caps.get(1).unwrap().as_str();
@@ -103,8 +114,8 @@ fn main() -> Result<()> {
 
                 for keycode in reg_exp_layer.find_iter(&inner_str) {
                     let keycode_str = keycode.as_str();
-                    let human_readable = get_key_code_human_readable(&keycode_str);
-                    println!("{}", human_readable);
+                    let human_readable = get_key_code_human_readable(&keycode_str, &keymap_dict);
+                    // print!("{} ", human_readable);
                 }
                 println!("---- LAYER end ----");
             }
@@ -114,7 +125,16 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn get_key_code_human_readable(keycode: &str) -> String {
-    let keycode_str = keycode.to_string();
-    keycode_str
+fn get_key_code_human_readable(keycode: &str, keymap_dictionary: &KeymapDictionary) -> String {
+    let mut keycode_str = keycode.to_string();
+    keycode_str.pop();
+    let human_readable = keymap_dictionary.get(&keycode_str);
+    if let Some(human_readable) = human_readable {
+        let human_readable = human_readable.clone();
+        // print!("{} ", human_readable);
+        human_readable
+    } else {
+        print!("{} ", keycode_str);
+        keycode_str
+    }
 }

@@ -9,6 +9,10 @@ use std::fs;
 use std::path::PathBuf;
 
 static KEYCODES_JSON: &str = include_str!("../data/keycodes.json");
+const NUMBER_OF_COLUMNS: i32 = 6;
+const NUMBER_OF_ROWS: i32 = 3;
+const IS_SPLIT: bool = true;
+const NUMBER_OF_THUMB_KEYS: i32 = 3;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
@@ -115,11 +119,41 @@ fn main() -> Result<()> {
 
                 layer_index = layer_index + 1;
 
+                let mut keycode_index = 0;
+                let mut row_index = 1;
                 for keycode in reg_exp_layer.find_iter(&inner_str) {
+                    keycode_index = keycode_index + 1;
+                    let mut is_end_row = false;
+                    let mut is_split_gap = false;
+
+                    let is_thumb_row = IS_SPLIT && row_index > NUMBER_OF_ROWS;
+
+                    if is_thumb_row {
+                        is_end_row = keycode_index % NUMBER_OF_THUMB_KEYS == 0;
+                        is_split_gap =
+                            is_end_row && keycode_index % (NUMBER_OF_THUMB_KEYS * 2) != 0;
+                    } else {
+                        is_end_row = keycode_index % NUMBER_OF_COLUMNS == 0;
+                        is_split_gap =
+                            IS_SPLIT && is_end_row && keycode_index % (NUMBER_OF_COLUMNS * 2) != 0;
+                    }
+
+                    // println!("is_end_row {}", is_end_row);
+                    // println!("is_split_gap {}", is_split_gap);
+                    if is_split_gap {
+                        print!("     ")
+                    }
+
+                    if !is_split_gap && is_end_row {
+                        println!("|");
+                        row_index = row_index + 1;
+                    }
+
                     let keycode_str = keycode.as_str();
                     let human_readable = get_key_code_human_readable(&keycode_str, &keymap_dict);
                     print!("{} ", human_readable);
                 }
+                println!("");
                 println!("---- LAYER end ----");
             }
         }

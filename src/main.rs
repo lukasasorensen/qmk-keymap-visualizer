@@ -102,7 +102,9 @@ fn main() -> Result<()> {
                 let inner_str = part.as_str();
 
                 for keycode in reg_exp_layer.find_iter(&inner_str) {
-                    println!("{}", keycode.as_str());
+                    let keycode_str = keycode.as_str();
+                    let human_readable = get_key_code_human_readable(&keycode_str);
+                    println!("{}", human_readable);
                 }
                 println!("---- LAYER end ----");
             }
@@ -110,4 +112,9 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn get_key_code_human_readable(keycode: &str) -> String {
+    let keycode_str = keycode.to_string();
+    keycode_str
 }

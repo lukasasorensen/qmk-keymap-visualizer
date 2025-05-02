@@ -115,7 +115,7 @@ fn main() -> Result<()> {
                 for keycode in reg_exp_layer.find_iter(&inner_str) {
                     let keycode_str = keycode.as_str();
                     let human_readable = get_key_code_human_readable(&keycode_str, &keymap_dict);
-                    // print!("{} ", human_readable);
+                    print!("{} ", human_readable);
                 }
                 println!("---- LAYER end ----");
             }
@@ -131,10 +131,8 @@ fn get_key_code_human_readable(keycode: &str, keymap_dictionary: &KeymapDictiona
     let human_readable = keymap_dictionary.get(&keycode_str);
     if let Some(human_readable) = human_readable {
         let human_readable = human_readable.clone();
-        // print!("{} ", human_readable);
         human_readable
     } else {
-        print!("{} ", keycode_str);
         keycode_str
     }
 }

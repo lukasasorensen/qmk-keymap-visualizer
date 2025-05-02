@@ -108,9 +108,12 @@ fn main() -> Result<()> {
                 .build()
                 .unwrap();
 
+            let mut layer_index = 0;
             for part in reg_exp_inner.find_iter(&inner) {
-                println!("---- LAYER start ----");
+                println!("---- LAYER {} start ----", layer_index.to_string());
                 let inner_str = part.as_str();
+
+                layer_index = layer_index + 1;
 
                 for keycode in reg_exp_layer.find_iter(&inner_str) {
                     let keycode_str = keycode.as_str();

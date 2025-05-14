@@ -6,6 +6,7 @@ use std::fs;
 use std::path::PathBuf;
 mod config;
 mod render;
+mod keymap_parser;
 
 pub static KEYCODES_JSON: &str = include_str!("../data/keycodes.json");
 
@@ -49,27 +50,17 @@ fn main() -> Result<()> {
             println!("Configuration saved successfully!");
         }
         Commands::Show => {
-            let reg_exp = RegexBuilder::new(r"keymaps.*MATRIX.*\{(.*)\}")
-                .multi_line(true)
-                .dot_matches_new_line(true)
-                .build()
-                .unwrap();
-
             let local_config = config::load_config()?;
             let keymap_dict = load_keymap_dictonary()?;
-            let contents = fs::read_to_string(&local_config.keymap_path)?;
-            let caps = reg_exp.captures(&contents).unwrap();
-            let inner = caps.get(1).unwrap().as_str();
 
-            let reg_exp_inner = RegexBuilder::new(r"\[\d+\](.*?)\s\),")
-                .multi_line(true)
-                .dot_matches_new_line(true)
-                .build()
-                .unwrap();
+            let parser_config = config::Config {
+                keymap_path: local_config.keymap_path,
+            };
+            let layers = keymap_parser::parse_keymap(parser_config)?;
 
             let mut layer_index = 0;
-            for part in reg_exp_inner.find_iter(&inner) {
-                render::render_layer(part.as_str(), &keymap_dict, layer_index);
+            for part in layers {
+                render::render_layer(&part, &keymap_dict, layer_index);
                 layer_index = layer_index + 1;
             }
         }

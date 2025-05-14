@@ -1,19 +1,14 @@
-use anyhow::{Context, Result};
+use anyhow::{Result};
 use clap::{Parser, Subcommand};
 use dialoguer::Input;
-use directories::ProjectDirs;
 use regex::RegexBuilder;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 mod env;
+mod config;
 
 pub static KEYCODES_JSON: &str = include_str!("../data/keycodes.json");
-#[derive(Debug, Serialize, Deserialize)]
-struct Config {
-    keymap_path: PathBuf,
-}
 
 type KeymapDictionary = HashMap<String, String>;
 
@@ -30,32 +25,6 @@ enum Commands {
     Setup,
     /// Show the contents of your keymap.c file
     Show,
-}
-
-fn get_config_path() -> Result<PathBuf> {
-    let proj_dirs = ProjectDirs::from("com", "qmk", "keymap-visualizer")
-        .context("Could not determine project directory")?;
-    let config_dir = proj_dirs.config_dir();
-    fs::create_dir_all(config_dir)?;
-    Ok(config_dir.join("config.json"))
-}
-
-fn load_config() -> Result<Config> {
-    let config_path = get_config_path()?;
-    if !config_path.exists() {
-        return Err(anyhow::anyhow!(
-            "Configuration not found. Please run 'setup' first."
-        ));
-    }
-    let config_str = fs::read_to_string(config_path)?;
-    Ok(serde_json::from_str(&config_str)?)
-}
-
-fn save_config(config: &Config) -> Result<()> {
-    let config_path = get_config_path()?;
-    let config_str = serde_json::to_string_pretty(config)?;
-    fs::write(config_path, config_str)?;
-    Ok(())
 }
 
 fn load_keymap_dictonary() -> Result<KeymapDictionary> {
@@ -78,8 +47,8 @@ fn main() -> Result<()> {
                 return Err(anyhow::anyhow!("The specified path does not exist"));
             }
 
-            let config = Config { keymap_path: path };
-            save_config(&config)?;
+            let local_config = config::Config { keymap_path: path };
+            config::save_config(&local_config)?;
             println!("Configuration saved successfully!");
         }
         Commands::Show => {
@@ -89,9 +58,9 @@ fn main() -> Result<()> {
                 .build()
                 .unwrap();
 
-            let config = load_config()?;
+            let local_config = config::load_config()?;
             let keymap_dict = load_keymap_dictonary()?;
-            let contents = fs::read_to_string(&config.keymap_path)?;
+            let contents = fs::read_to_string(&local_config.keymap_path)?;
             let caps = reg_exp.captures(&contents).unwrap();
             let inner = caps.get(1).unwrap().as_str();
 

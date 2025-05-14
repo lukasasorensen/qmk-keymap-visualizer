@@ -60,18 +60,30 @@ fn render_keycode(
     print!("{}", human_readable);
 
     if is_split_gap {
-        print!("|      ")
+        let repeat_count = KEY_DISPLAY_CHAR_WIDTH;
+        print!("|{}", " ".repeat(repeat_count as usize));
     }
     return is_end_row;
 }
 
 fn print_dashes() {
-    let num_of_dashes = ((KEY_DISPLAY_CHAR_WIDTH + 1) * NUMBER_OF_COLUMNS) + 8;
-    let mut dashes = String::new();
-    for _ in 0..num_of_dashes {
-        dashes.push('-');
-    }
-    println!("{}", dashes.to_string());
+    let column_width_with_pipes = KEY_DISPLAY_CHAR_WIDTH + 1;
+    let num_of_dashes = (column_width_with_pipes * NUMBER_OF_COLUMNS) + 8;
+    let line = (0..num_of_dashes)
+        .map(|i| {
+            if IS_SPLIT
+                && i > (num_of_dashes / 2) - (column_width_with_pipes / 2)
+                && i < (num_of_dashes / 2) + (column_width_with_pipes / 2)
+            {
+                ' '
+            } else if i % column_width_with_pipes == 0 {
+                '+'
+            } else {
+                '-'
+            }
+        })
+        .collect::<String>();
+    println!("{}", line);
 }
 
 fn get_key_code_human_readable(keycode: &str, keymap_dictionary: &KeymapDictionary) -> String {
@@ -87,22 +99,17 @@ fn get_key_code_human_readable(keycode: &str, keymap_dictionary: &KeymapDictiona
 }
 
 fn create_key_gui(key_str: &str) -> String {
-    let short_key = key_str
+    let key = key_str
         .chars()
         .take(KEY_DISPLAY_CHAR_WIDTH as usize)
         .collect::<String>();
-    let key_length = short_key.len();
-    let mut s = String::new();
-    let n_spaces = KEY_DISPLAY_CHAR_WIDTH - key_length as i32;
-    let l_spaces = n_spaces / 2;
-    let r_spaces = n_spaces - l_spaces;
-    s.push('|');
-    for _ in 0..l_spaces {
-        s.push(' ')
-    }
-    s.push_str(&short_key);
-    for _ in 0..r_spaces {
-        s.push(' ')
-    }
-    s
+    let padding = KEY_DISPLAY_CHAR_WIDTH - key.len() as i32;
+    let left_pad = padding / 2;
+    let right_pad = padding - left_pad;
+    format!(
+        "|{}{}{}",
+        " ".repeat(left_pad as usize),
+        key,
+        " ".repeat(right_pad as usize)
+    )
 }

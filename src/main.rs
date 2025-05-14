@@ -7,14 +7,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+mod env;
 
-static KEYCODES_JSON: &str = include_str!("../data/keycodes.json");
-const NUMBER_OF_COLUMNS: i32 = 12;
-const NUMBER_OF_ROWS: i32 = 3;
-const IS_SPLIT: bool = true;
-const NUMBER_OF_THUMB_KEYS: i32 = 6;
-const KEY_DISPLAY_CHAR_WIDTH: i32 = 7;
-
+pub static KEYCODES_JSON: &str = include_str!("../data/keycodes.json");
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
     keymap_path: PathBuf,
@@ -148,16 +143,16 @@ fn render_keycode(keycode: &str, keycode_index: i32, row_index: i32, keymap_dict
     let is_end_row;
     let is_split_gap;
 
-    let is_thumb_row = IS_SPLIT && row_index > NUMBER_OF_ROWS;
+    let is_thumb_row = env::IS_SPLIT && row_index > env::NUMBER_OF_ROWS;
 
     if is_thumb_row {
-        is_end_row = keycode_index % NUMBER_OF_THUMB_KEYS == 0;
+        is_end_row = keycode_index % env::NUMBER_OF_THUMB_KEYS == 0;
         is_split_gap =
-            !is_end_row && keycode_index % (NUMBER_OF_THUMB_KEYS / 2) == 0;
+            !is_end_row && keycode_index % (env::NUMBER_OF_THUMB_KEYS / 2) == 0;
     } else {
-        is_end_row = keycode_index % NUMBER_OF_COLUMNS == 0;
+        is_end_row = keycode_index % env::NUMBER_OF_COLUMNS == 0;
         is_split_gap =
-            !is_end_row && IS_SPLIT && keycode_index % (NUMBER_OF_COLUMNS / 2) == 0;
+            !is_end_row && env::IS_SPLIT && keycode_index % (env::NUMBER_OF_COLUMNS / 2) == 0;
     }
 
     let mut human_readable =
@@ -172,7 +167,7 @@ fn render_keycode(keycode: &str, keycode_index: i32, row_index: i32, keymap_dict
 }
 
 fn print_dashes() {
-    let num_of_dashes = ((KEY_DISPLAY_CHAR_WIDTH + 1) * NUMBER_OF_COLUMNS) + 8;
+    let num_of_dashes = ((env::KEY_DISPLAY_CHAR_WIDTH + 1) * env::NUMBER_OF_COLUMNS) + 8;
     let mut dashes = String::new();
     for _ in 0..num_of_dashes {
         dashes.push('-');
@@ -195,11 +190,11 @@ fn get_key_code_human_readable(keycode: &str, keymap_dictionary: &KeymapDictiona
 fn create_key_gui(key_str: &str) -> String {
     let short_key = key_str
         .chars()
-        .take(KEY_DISPLAY_CHAR_WIDTH as usize)
+        .take(env::KEY_DISPLAY_CHAR_WIDTH as usize)
         .collect::<String>();
     let key_length = short_key.len();
     let mut s = String::new();
-    let n_spaces = KEY_DISPLAY_CHAR_WIDTH - key_length as i32;
+    let n_spaces = env::KEY_DISPLAY_CHAR_WIDTH - key_length as i32;
     let l_spaces = n_spaces / 2;
     let r_spaces = n_spaces - l_spaces;
     s.push('|');

@@ -23,6 +23,8 @@ enum Commands {
     Setup,
     /// Show the contents of your keymap.c file
     Show,
+    /// Open the keymap in a window
+    Open,
 }
 
 fn load_keymap_dictonary() -> Result<render::KeymapDictionary> {
@@ -63,6 +65,18 @@ fn main() -> Result<()> {
                 render::render_layer(&part, &keymap_dict, layer_index);
                 layer_index = layer_index + 1;
             }
+        }
+        Commands::Open => {
+            let local_config = config::load_config()?;
+            let keymap_dict = load_keymap_dictonary()?;
+
+            let parser_config = config::Config {
+                keymap_path: local_config.keymap_path,
+            };
+            let layers = keymap_parser::parse_keymap(parser_config)?;
+
+            let rendered_text = render::render_all_layers(&layers, &keymap_dict);
+            render::open_in_window(rendered_text).map_err(|e| anyhow::anyhow!("Failed to open window: {}", e))?;
         }
     }
 

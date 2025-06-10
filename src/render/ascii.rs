@@ -1,6 +1,6 @@
 use egui::Context;
-use regex::RegexBuilder;
 use std::collections::HashMap;
+use crate::utils::keycode_util;
 
 const NUMBER_OF_COLUMNS: i32 = 12;
 const NUMBER_OF_ROWS: i32 = 3;
@@ -12,26 +12,7 @@ const TOTAL_KEYS: i32 = TOTAL_NON_THUMB_KEYS + NUMBER_OF_THUMB_KEYS;
 
 pub type KeymapDictionary = HashMap<String, String>;
 
-fn get_key_code_human_readable(keycode: &str, keymap_dictionary: &KeymapDictionary) -> String {
-    let mut keycode_str = keycode.to_string();
-    keycode_str = keycode_str.trim().to_string();
-    if keycode_str.contains("(") {
-        let keycode_regex = RegexBuilder::new(r"\w+\((.*)\)").build().unwrap();
-        let caps = keycode_regex.captures(&keycode_str).unwrap();
-        let inner = caps.get(1).unwrap().as_str();
-        keycode_str = inner.to_string();
-    }
 
-    keycode_str = keycode_str.replace(",", "");
-
-    let human_readable = keymap_dictionary.get(&keycode_str);
-    if let Some(human_readable) = human_readable {
-        let human_readable = human_readable.clone();
-        human_readable
-    } else {
-        keycode_str
-    }
-}
 
 fn create_key_gui(key_str: &str) -> String {
     let key = key_str
@@ -59,12 +40,8 @@ pub fn render_all_layers(layers: &[Vec<String>], keymap_dict: &KeymapDictionary)
         let mut keycode_index = 1;
 
         for keycode in layer {
-            let is_end_row = render_keycode_to_string(
-                &keycode,
-                keycode_index,
-                keymap_dict,
-                &mut layer_output,
-            );
+            let is_end_row =
+                render_keycode_to_string(&keycode, keycode_index, keymap_dict, &mut layer_output);
             if is_end_row {
                 layer_output.push_str("|\n");
                 print_dashes_to_string(&mut layer_output);
@@ -109,7 +86,7 @@ fn render_keycode_to_string(
         is_split_gap = !is_end_row && IS_SPLIT && keycode_index % (NUMBER_OF_COLUMNS / 2) == 0;
     }
 
-    let mut human_readable = get_key_code_human_readable(&keycode, &keymap_dict);
+    let mut human_readable = keycode_util::get_key_code_human_readable(&keycode, &keymap_dict);
     human_readable = create_key_gui(&human_readable);
     output.push_str(&human_readable);
 

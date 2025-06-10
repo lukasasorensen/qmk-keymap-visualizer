@@ -3,8 +3,9 @@ use clap::{Parser, Subcommand};
 use dialoguer::Input;
 use std::path::PathBuf;
 mod config;
-mod ascii;
+mod render;
 mod keymap_parser;
+mod utils;
 
 pub static KEYCODES_JSON: &str = include_str!("../data/keycodes.json");
 
@@ -25,8 +26,8 @@ enum Commands {
     Open,
 }
 
-fn load_keymap_dictonary() -> Result<ascii::KeymapDictionary> {
-    let keymap_dictionary: ascii::KeymapDictionary = serde_json::from_str(KEYCODES_JSON)?;
+fn load_keymap_dictonary() -> Result<render::ascii::KeymapDictionary> {
+    let keymap_dictionary: render::ascii::KeymapDictionary = serde_json::from_str(KEYCODES_JSON)?;
     Ok(keymap_dictionary)
 }
 
@@ -58,7 +59,7 @@ fn main() -> Result<()> {
             };
             let layers = keymap_parser::parse_keymap(parser_config)?;
 
-            let rendered_text = ascii::render_all_layers(&layers, &keymap_dict);
+            let rendered_text = render::ascii::render_all_layers(&layers, &keymap_dict);
             println!("{}", rendered_text);
 
         }
@@ -69,10 +70,12 @@ fn main() -> Result<()> {
             let parser_config = config::Config {
                 keymap_path: local_config.keymap_path,
             };
-            let layers = keymap_parser::parse_keymap(parser_config)?;
+            let full_keymap = keymap_parser::parse_full_keymap(parser_config)?;
 
-            let rendered_text = ascii::render_all_layers(&layers, &keymap_dict);
-            ascii::open_in_window(rendered_text).map_err(|e| anyhow::anyhow!("Failed to open window: {}", e))?;
+            let _ = render::gui::open_keymap_window(full_keymap, &keymap_dict);
+
+            // let rendered_text = render::ascii::render_all_layers(&layers, &keymap_dict);
+            // render::ascii::open_in_window(rendered_text).map_err(|e| anyhow::anyhow!("Failed to open window: {}", e))?;
         }
     }
 

@@ -3,6 +3,14 @@ use anyhow::Result;
 use regex::RegexBuilder;
 use std::fs;
 
+const NUMBER_OF_COLUMNS: i32 = 12;
+// const NUMBER_OF_ROWS: i32 = 3;
+// const IS_SPLIT: bool = true;
+// const NUMBER_OF_THUMB_KEYS: i32 = 6;
+// const KEY_DISPLAY_CHAR_WIDTH: i32 = 7;
+// const TOTAL_NON_THUMB_KEYS: i32 = NUMBER_OF_COLUMNS * NUMBER_OF_ROWS;
+// const TOTAL_KEYS: i32 = TOTAL_NON_THUMB_KEYS + NUMBER_OF_THUMB_KEYS;
+
 pub fn parse_keymap(local_config: Config) -> Result<Vec<Vec<String>>> {
     let reg_exp = RegexBuilder::new(r"keymaps.*MATRIX.*\{(.*)\}")
         .multi_line(true)
@@ -51,4 +59,20 @@ pub fn parse_keymap(local_config: Config) -> Result<Vec<Vec<String>>> {
     }).collect();
 
     Ok(layers_vec)
+}
+
+pub fn parse_full_keymap(local_config: Config) -> Result<Vec<Vec<Vec<String>>>> {
+    let keymap = parse_keymap(local_config)?;
+    let mut full_keymap = Vec::new();
+
+    for layer in keymap {
+        let layer_chunks = layer.chunks(NUMBER_OF_COLUMNS as usize)
+            .map(|chunk| chunk.to_vec())
+            .collect::<Vec<Vec<String>>>();
+        full_keymap.push(layer_chunks);
+    }
+
+    println!("{:?}", full_keymap);
+
+    Ok(full_keymap)
 }

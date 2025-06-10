@@ -49,23 +49,18 @@ fn create_key_gui(key_str: &str) -> String {
     )
 }
 
-pub fn render_all_layers(layers: &[String], keymap_dict: &KeymapDictionary) -> String {
+pub fn render_all_layers(layers: &[Vec<String>], keymap_dict: &KeymapDictionary) -> String {
     let mut output = String::new();
     let mut layer_index = 0;
 
-    for part in layers {
+    for layer in layers {
         let mut layer_output = String::new();
-        let reg_exp_layer = RegexBuilder::new(r"\w+\([^)]*\)|\w+")
-            .multi_line(true)
-            .build()
-            .unwrap();
-
         layer_output.push_str(&format!("---- LAYER {} start ----\n\n", layer_index));
-
         let mut keycode_index = 1;
-        for keycode in reg_exp_layer.find_iter(&part) {
+
+        for keycode in layer {
             let is_end_row = render_keycode_to_string(
-                keycode.as_str(),
+                &keycode,
                 keycode_index,
                 keymap_dict,
                 &mut layer_output,

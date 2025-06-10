@@ -3,7 +3,7 @@ use anyhow::Result;
 use regex::RegexBuilder;
 use std::fs;
 
-pub fn parse_keymap(local_config: Config) -> Result<Vec<String>> {
+pub fn parse_keymap(local_config: Config) -> Result<Vec<Vec<String>>> {
     let reg_exp = RegexBuilder::new(r"keymaps.*MATRIX.*\{(.*)\}")
         .multi_line(true)
         .dot_matches_new_line(true)
@@ -20,11 +20,16 @@ pub fn parse_keymap(local_config: Config) -> Result<Vec<String>> {
         .build()
         .unwrap();
 
+    let reg_exp_layer = RegexBuilder::new(r"\w+\([^)]*\)|\w+")
+        .multi_line(true)
+        .build()
+        .unwrap();
+
     let layers: Vec<String> = reg_exp_inner
         .find_iter(inner)
         .map(|m| m.as_str().to_string())
         .collect();
-    
+
     let layers: Vec<String> = layers
         .into_iter()
         .map(|layer| {
@@ -39,5 +44,11 @@ pub fn parse_keymap(local_config: Config) -> Result<Vec<String>> {
         })
         .collect();
 
-    Ok(layers)
+    let layers_vec: Vec<Vec<String>> = layers.iter().map(|layer| {
+        reg_exp_layer.find_iter(layer)
+            .map(|m| m.as_str().to_string())
+            .collect()
+    }).collect();
+
+    Ok(layers_vec)
 }

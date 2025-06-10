@@ -1,7 +1,7 @@
+use crate::config::Config;
+use anyhow::Result;
 use regex::RegexBuilder;
 use std::fs;
-use anyhow::Result;
-use crate::config::Config;
 
 pub fn parse_keymap(local_config: Config) -> Result<Vec<String>> {
     let reg_exp = RegexBuilder::new(r"keymaps.*MATRIX.*\{(.*)\}")
@@ -20,7 +20,24 @@ pub fn parse_keymap(local_config: Config) -> Result<Vec<String>> {
         .build()
         .unwrap();
 
-    Ok(reg_exp_inner.find_iter(inner)
+    let layers: Vec<String> = reg_exp_inner
+        .find_iter(inner)
         .map(|m| m.as_str().to_string())
-        .collect())
+        .collect();
+    
+    let layers: Vec<String> = layers
+        .into_iter()
+        .map(|layer| {
+            layer
+                .lines()
+                .filter(|line| !line.trim_start().starts_with("//"))
+                .filter(|line| {
+                    !line.trim_start().starts_with(")") && !line.trim_start().ends_with("(")
+                })
+                .collect::<Vec<&str>>()
+                .join("\n")
+        })
+        .collect();
+
+    Ok(layers)
 }

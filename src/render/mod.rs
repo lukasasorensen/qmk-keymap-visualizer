@@ -54,12 +54,6 @@ pub fn render_all_layers(layers: &[String], keymap_dict: &KeymapDictionary) -> S
     let mut layer_index = 0;
 
     for part in layers {
-        let part = part.lines()
-            .filter(|line| !line.trim_start().starts_with("//"))
-            .filter(|line| !line.trim_start().starts_with(")") && !line.trim_start().ends_with("("))
-            .collect::<Vec<&str>>()
-            .join("\n");
-
         let mut layer_output = String::new();
         let reg_exp_layer = RegexBuilder::new(r"\w+\([^)]*\)|\w+")
             .multi_line(true)

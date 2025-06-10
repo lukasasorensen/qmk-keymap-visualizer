@@ -1,8 +1,6 @@
 use anyhow::{Result};
 use clap::{Parser, Subcommand};
 use dialoguer::Input;
-use regex::RegexBuilder;
-use std::fs;
 use std::path::PathBuf;
 mod config;
 mod render;
@@ -60,11 +58,9 @@ fn main() -> Result<()> {
             };
             let layers = keymap_parser::parse_keymap(parser_config)?;
 
-            let mut layer_index = 0;
-            for part in layers {
-                render::render_layer(&part, &keymap_dict, layer_index);
-                layer_index = layer_index + 1;
-            }
+            let rendered_text = render::render_all_layers(&layers, &keymap_dict);
+            println!("{}", rendered_text);
+
         }
         Commands::Open => {
             let local_config = config::load_config()?;
